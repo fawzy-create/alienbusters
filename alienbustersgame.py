@@ -34,6 +34,14 @@ pygame.display.set_caption("Space Invaders - Minimal")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 28)
 
+# Sound setup
+PLAYER_UFO_SHOOT_SOUND = None
+try:
+    PLAYER_UFO_SHOOT_SOUND = pygame.mixer.Sound("burp.wav")
+    PLAYER_UFO_SHOOT_SOUND.set_volume(0.6)
+except Exception:
+    PLAYER_UFO_SHOOT_SOUND = None
+
 # Entities
 class Player:
     def __init__(self):
@@ -568,6 +576,9 @@ if __name__ == "__main__":
                             pygame.quit(); sys.exit()
                         if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
                             if not game_over and player.cooldown == 0:
+                                # play sound
+                                PLAYER_UFO_SHOOT_SOUND.play()
+
                                 bullets.append(Bullet(player.x, player.y - player.h//2 - 8, -BULLET_SPEED, 'player'))
                                 player.cooldown = player.shoot_cooldown_value
                         if event.key == pygame.K_r and game_over:
@@ -815,6 +826,7 @@ if __name__ == "__main__":
                             pygame.quit(); sys.exit()
                         if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
                             if not game_over and player.cooldown == 0:
+                                PLAYER_UFO_SHOOT_SOUND.play()
                                 bullets.append(Bullet(player.x, player.y - player.h//2 - 8, -BULLET_SPEED, 'player'))
                                 player.cooldown = player.shoot_cooldown_value
                         if event.key == pygame.K_r and game_over:
@@ -1144,7 +1156,33 @@ if __name__ == "__main__":
                     pass
 
                 PLAYER_UFO_SHOOT_SOUND = None
-                for _fn in ("game_sond_psu.wav", "game_sond_psu.ogg", "game_sound_psu.wav", "psu.wav"):
+                for _fn in ("game sound psu.m4a"):
+                    try:
+                        PLAYER_UFO_SHOOT_SOUND = pygame.mixer.Sound(_fn)
+                        PLAYER_UFO_SHOOT_SOUND.set_volume(0.6)
+                        break
+                    except Exception:  
+                        PLAYER_UFO_SHOOT_SOUND = None
+
+                _original_bullet_init = Bullet.__init__
+                def _patched_bullet_init(self, x, y, dy, owner):
+                    _original_bullet_init(self, x, y, dy, owner)
+                    try:
+                        # play only for player bullets when the player's ship style is the saucer/UFO (style 2)
+                        if owner == "player" and globals().get("SHIP_STYLE", 0) % 4 == 2 and PLAYER_UFO_SHOOT_SOUND:
+                            PLAYER_UFO_SHOOT_SOUND.play()
+                    except Exception:
+                        pass
+
+                # load mixer & sound once (put this before the menu/game loop)
+                try:
+                    if not pygame.mixer.get_init():
+                        pygame.mixer.init()
+                except Exception:
+                    pass
+
+                PLAYER_UFO_SHOOT_SOUND = None
+                for _fn in ("game_sound_psu.wav", "game_sound_psu.ogg", "game_sound_psu.m4a"):
                     try:
                         PLAYER_UFO_SHOOT_SOUND = pygame.mixer.Sound(_fn)
                         PLAYER_UFO_SHOOT_SOUND.set_volume(0.6)
@@ -1156,8 +1194,8 @@ if __name__ == "__main__":
                 def _patched_bullet_init(self, x, y, dy, owner):
                     _original_bullet_init(self, x, y, dy, owner)
                     try:
-                        # play only for player bullets when the player's ship style is the saucer/UFO (style 2)
-                        if owner == "player" and globals().get("SHIP_STYLE", 0) % 4 == 2 and PLAYER_UFO_SHOOT_SOUND:
+                        # owner is 'player' in your code; sound plays only for ship style 2 (saucer)
+                        if owner == 'player' and globals().get("SHIP_STYLE", 0) % 4 == 2 and PLAYER_UFO_SHOOT_SOUND:
                             PLAYER_UFO_SHOOT_SOUND.play()
                     except Exception:
                         pass
