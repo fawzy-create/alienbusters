@@ -36,9 +36,11 @@ font = pygame.font.SysFont(None, 28)
 
 # Sound setup
 PLAYER_UFO_SHOOT_SOUND = None
+GAME_OVER_SOUND= None 
 try:
     PLAYER_UFO_SHOOT_SOUND = pygame.mixer.Sound("burp.wav")
     PLAYER_UFO_SHOOT_SOUND.set_volume(0.6)
+    GAME_OVER_SOUND = pygame.mixer.Sound("alphix-game-over-417465.mp3")
 except Exception:
     PLAYER_UFO_SHOOT_SOUND = None
 
@@ -667,6 +669,7 @@ if __name__ == "__main__":
                                     lives -= 1
                                     if lives <= 0:
                                         game_over = True
+                                        GAME_OVER_SOUND.play()
                                     else:
                                         # respawn player, clear bullets and powerups to give a breather
                                         player = Player()
@@ -922,6 +925,7 @@ if __name__ == "__main__":
                                     lives -= 1
                                     if lives <= 0:
                                         game_over = True
+                                        GAME_OVER_SOUND.play()
                                     else:
                                         # respawn player, clear bullets and powerups to give a breather
                                         player = Player()
